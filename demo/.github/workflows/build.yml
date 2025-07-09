@@ -30,6 +30,7 @@ jobs:
 
       - name: Build and test with maven
         run: mvn clean install
+        working-directory: demo
             
 
 
