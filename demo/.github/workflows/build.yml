@@ -29,6 +29,11 @@ jobs:
           restore-keys: |
               ${{ runner.os }}-maven-
 
+      - name: Show working directory and files
+        run: |
+          pwd
+          ls -R
+
       - name: Build and test with maven
         run: mvn clean install
         working-directory: demo
