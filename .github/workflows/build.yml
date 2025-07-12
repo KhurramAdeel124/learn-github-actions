@@ -40,8 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: springboot-jar
-          path: target/*.jar
-        working-directory: demo
+          path: ./demo/target/*.jar
 
 
   deploy:
@@ -53,8 +52,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: springboot-jar
-        working-directory: demo
-
+     
       - name: Output contents
         run: ls
 
