@@ -7,64 +7,75 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-    outputs:
-     script-file: ${{ steps.publish.outputs.script-file }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-
       - name: Cache maven dependencies
-        uses: actions/cache@v4
+        uses: action/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      - name: Test with Maven
+        run: mvn clean test
+        working-directory: demo
 
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      script-file: ${{ steps.publish.outputs.script-file }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Cache maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2  # the path like ~/ telling github that this folder should be store somewhere in githubcloud so that it can be accessible in other jobs/workflow execution
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
       - name: Show working directory and files
         run: |
           pwd
           ls -R
-
-      - name: Build and test with maven
+      - name: Build with maven
         run: mvn clean package
         working-directory: demo
-        
       - name: Publish properties file name
         id: publish
         run: find ./demo/target/classes/*.properties -type f -execdir echo 'script-file={}' >> $GITHUB_OUTPUT ';'
-
       - name: Archive JAR artifact
         uses: actions/upload-artifact@v4
         with:
           name: springboot-jar
           path: ./demo/target/*.jar
 
-
   deploy:
     needs: build
     runs-on: ubuntu-latest
-
     steps:
       - name: Get build artifacts
         uses: actions/download-artifact@v4
         with:
           name: springboot-jar
-     
       - name: Output contents
         run: ls
-        
       - name: Output filename
         run: echo "${{ needs.build.outputs.script-file }}"
-
       - name: Deploy
         run: echo "Deploying...."
 
