@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+     script-file: ${{ steps.publish.outputs.script-file }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,6 +37,10 @@ jobs:
       - name: Build and test with maven
         run: mvn clean package
         working-directory: demo
+        
+      - name: Publish properties file name
+        id: publish
+        run: find ./demo/target/classes/*.properties -type f -execdir echo 'script-file={}' >> $GITHUB_OUTPUT ';'
 
       - name: Archive JAR artifact
         uses: actions/upload-artifact@v4
@@ -55,6 +61,9 @@ jobs:
      
       - name: Output contents
         run: ls
+        
+      - name: Output filename
+        run: echo "${{ needs.build.outputs.script-file }}
 
       - name: Deploy
         run: echo "Deploying...."
