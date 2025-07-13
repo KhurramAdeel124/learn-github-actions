@@ -6,13 +6,15 @@ on:
     branches: [ main ]
   workflow_dispatch:
   
-env:
-    PROFILE: test
-
 jobs:
   test:
     runs-on: ubuntu-latest
     environment: testing
+    env:
+        DB_URL: ${{ vars.DB_URL }}
+        DB_USERNAME:  ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD:  ${{ secrets.DB_PASSWORD }}
+        PROFILE: test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
