@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
         DB_URL: jdbc:mysql://localhost:3306/organization
-        DB_USERNAME: root
+        DB_USERNAME: me
         DB_PASSWORD: admin
     steps:
       - name: Checkout code
