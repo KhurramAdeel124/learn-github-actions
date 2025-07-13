@@ -37,6 +37,12 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
+    environment: production
+    env:
+        DB_URL: ${{ vars.DB_URL }}
+        DB_USERNAME:  ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD:  ${{ secrets.DB_PASSWORD }}
+        PROFILE: prod
     outputs:
       script-file: ${{ steps.publish.outputs.script-file }}
     steps:
