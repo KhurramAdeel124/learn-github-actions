@@ -33,11 +33,14 @@ jobs:
       - name: Test with Maven
         run: mvn clean test
         working-directory: demo
-      - name: Archive Test report
+      - name: Upload JaCoCo Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: test-report
-          path: ./demo/target/site/jacoco/index.html
+          name: jacoco-data
+          path: |
+            ./demo/target/jacoco.exec
+            ./demo/target/classes/
+            ./demo/target/test-classes/
 
   build:
     needs: test
@@ -64,13 +67,18 @@ jobs:
           path: ~/.m2  # the path like ~/ telling github that this folder should be store somewhere in githubcloud so that it can be accessible in other jobs/workflow execution
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-maven-
+            ${{ runner.os }}-maven-    
+      - name: Download JaCoCo Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: jacoco-data
+          path: ./demo/target/      
       - name: Show working directory and files
         run: |
           pwd
           ls -R
       - name: Build with maven
-        run: mvn clean verify -DskipTests
+        run: mvn verify -DskipTests
         working-directory: demo
       - name: Publish properties file name
         id: publish
