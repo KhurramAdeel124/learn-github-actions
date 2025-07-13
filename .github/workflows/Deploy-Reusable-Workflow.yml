@@ -7,10 +7,18 @@ on:
      required: false
      default: sample-jar
      type: string
-   
+   outputs:
+    result:
+     description: The result of the deployment operation
+     value: ${{ jobs.deploy.outputs.outcome }}
+   # secrets:
+    # some-secret:
+        # required: false
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    outputs:
+     outcome: ${{ steps.set-result.outputs.step-result }}
     steps:
       - name: Get build artifacts
         uses: actions/download-artifact@v4
@@ -25,3 +33,7 @@ jobs:
         
       - name: Deploy
         run: echo "Deploying...."
+        
+      - name: Set result output
+        id: set-result
+        run: echo "step-result=success" >> $GITHUB_OUTPUT
