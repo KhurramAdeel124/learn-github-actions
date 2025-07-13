@@ -35,7 +35,7 @@ jobs:
             
       - name: Test with Maven
         id: teststep
-        continue-on-error: true
+        continue-on-error: true  #Next steps will continue to execute even if this step is failed.
         run: mvn clean test
         working-directory: demo
         
@@ -48,7 +48,7 @@ jobs:
             ./demo/target/classes/
             ./demo/target/test-classes/
             
-      - name: Fail job if test failed
+      - name: Fail job if test failed #Checking if statement to exit is important to consider this job as failed. Continue-on-error=true make the step successful
         if: steps.teststep.outcome == 'failure'
         run: exit 1
      
@@ -137,6 +137,16 @@ jobs:
         
       - name: Deploy
         run: echo "Deploying...."
+        
+  report:
+    if: failure() #if any job failed then execute this job
+    runs-on: ubuntu-latest
+    steps:
+      
+      - name: Output Information
+        run: |
+            echo "Something went wrong...."
+            echo "{{ toJSON(github) }}"
 
 
 
