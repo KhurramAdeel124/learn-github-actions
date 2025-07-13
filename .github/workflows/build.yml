@@ -97,6 +97,12 @@ jobs:
         run: mvn verify -DskipTests
         working-directory: demo
         
+      - name: Show working directory and files
+        if:  failure() && steps.coveragecheck.outcome == 'failure'
+        run: |
+          pwd
+          ls -R
+        
       - name: Upload Test Coverage Report
         if:  failure() && steps.coveragecheck.outcome == 'failure'
         uses: actions/upload-artifact@v4
