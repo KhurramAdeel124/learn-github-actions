@@ -98,7 +98,7 @@ jobs:
         working-directory: demo
         
       - name: Upload Test Coverage Report
-        if:  steps.coveragecheck.outcome == 'failure'
+        if:  failure() && steps.coveragecheck.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-failed-report
