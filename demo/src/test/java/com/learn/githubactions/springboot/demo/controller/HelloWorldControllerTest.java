@@ -22,12 +22,12 @@ class HelloWorldControllerTest {
                 .andExpect(content().string("hello my world.."));
     }
 
-  /*  @Test
+   @Test
     void testGetEnvironmentDetails() throws Exception {
         mockMvc.perform(get("/environment-details"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("URL:jdbc:mysql://localhost:3306/organization UserName:root Password:admin"));
-    }*/
+    }
 
 
 }
