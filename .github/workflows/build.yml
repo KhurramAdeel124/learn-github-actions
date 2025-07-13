@@ -41,6 +41,11 @@ jobs:
             ./demo/target/jacoco.exec
             ./demo/target/classes/
             ./demo/target/test-classes/
+      - name: Upload JaCoCo HTML Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-html-report
+          path: ./demo/target/site/jacoco/
 
   build:
     needs: test
