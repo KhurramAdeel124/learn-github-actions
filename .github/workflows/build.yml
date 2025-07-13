@@ -18,11 +18,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          
       - name: Cache maven dependencies
         uses: actions/cache@v4
         with:
@@ -30,9 +32,13 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+            
       - name: Test with Maven
+        id: teststep
+        continue-on-error: true
         run: mvn clean test
         working-directory: demo
+        
       - name: Upload JaCoCo Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -41,12 +47,11 @@ jobs:
             ./demo/target/jacoco.exec
             ./demo/target/classes/
             ./demo/target/test-classes/
-      - name: Upload JaCoCo HTML Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-html-report
-          path: ./demo/target/site/jacoco/
-
+            
+      - name: Fail job if test failed
+        if: steps.teststep.outcome == 'failure'
+        run: exit 1
+     
   build:
     needs: test
     runs-on: ubuntu-latest
@@ -61,11 +66,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          
       - name: Cache maven dependencies
         uses: actions/cache@v4
         with:
@@ -73,21 +80,34 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-    
+            
       - name: Download JaCoCo Artifacts
         uses: actions/download-artifact@v4
         with:
           name: jacoco-data
           path: ./demo/target/      
+          
       - name: Show working directory and files
         run: |
           pwd
           ls -R
+          
       - name: Build with maven
+        id: coveragecheck
         run: mvn verify -DskipTests
         working-directory: demo
+        
+      - name: Upload Test Coverage Report
+        if:  steps.coveragecheck.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-failed-report
+          path: ./target/site/jacoco/
+        
       - name: Publish properties file name
         id: publish
         run: find ./demo/target/classes/*.properties -type f -execdir echo 'script-file={}' >> $GITHUB_OUTPUT ';'
+        
       - name: Archive JAR artifact
         uses: actions/upload-artifact@v4
         with:
@@ -102,10 +122,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: springboot-jar
+          
       - name: Output contents
         run: ls
+        
       - name: Output filename
         run: echo "${{ needs.build.outputs.script-file }}"
+        
       - name: Deploy
         run: echo "Deploying...."
 
