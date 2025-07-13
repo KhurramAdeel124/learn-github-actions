@@ -1,30 +1,30 @@
+---
 name: Build And Deploy Spring Boot App
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
-  workflow_dispatch:
-  
+    branches:
+      - main
+  workflow_dispatch: null
 jobs:
   test:
     runs-on: ubuntu-latest
     environment: testing
     env:
-        DB_URL: ${{ vars.DB_URL }}
-        DB_USERNAME:  ${{ secrets.DB_USERNAME }}
-        DB_PASSWORD:  ${{ secrets.DB_PASSWORD }}
-        PROFILE: test
+      DB_URL: ${{ vars.DB_URL }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      PROFILE: test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          
+          java-version: "17"
+          distribution: temurin
       - name: Cache maven dependencies
         uses: actions/cache@v4
         with:
@@ -32,13 +32,11 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-            
       - name: Test with Maven
         id: teststep
-        continue-on-error: true  #Next steps will continue to execute even if this step is failed.
+        continue-on-error: true
         run: mvn clean test
         working-directory: demo
-        
       - name: Upload JaCoCo Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -47,102 +45,84 @@ jobs:
             ./demo/target/jacoco.exec
             ./demo/target/classes/
             ./demo/target/test-classes/
-            
-      - name: Fail job if test failed #Checking if statement to exit is important to consider this job as failed. Continue-on-error=true make the step successful
+      - name: Fail job if test failed
         if: steps.teststep.outcome == 'failure'
         run: exit 1
-     
   build:
     needs: test
     runs-on: ubuntu-latest
     environment: production
     env:
-        DB_URL: ${{ vars.DB_URL }}
-        DB_USERNAME:  ${{ secrets.DB_USERNAME }}
-        DB_PASSWORD:  ${{ secrets.DB_PASSWORD }}
-        PROFILE: prod
+      DB_URL: ${{ vars.DB_URL }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      PROFILE: prod
     outputs:
       script-file: ${{ steps.publish.outputs.script-file }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          
+          java-version: "17"
+          distribution: temurin
       - name: Cache maven dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.m2  # the path like ~/ telling github that this folder should be store somewhere in githubcloud so that it can be accessible in other jobs/workflow execution
+          path: ~/.m2
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-    
-            
       - name: Download JaCoCo Artifacts
         uses: actions/download-artifact@v4
         with:
           name: jacoco-data
-          path: ./demo/target/      
-          
+          path: ./demo/target/
       - name: Show working directory and files
         run: |
           pwd
           ls -R
-          
       - name: Build with maven
         id: coveragecheck
         run: mvn verify -DskipTests
         working-directory: demo
-        
       - name: Show working directory and files
-        if:  failure() && steps.coveragecheck.outcome == 'failure'
+        if: failure() && steps.coveragecheck.outcome == 'failure'
         run: |
           pwd
           ls -R
-        
       - name: Upload Test Coverage Report
-        if:  failure() && steps.coveragecheck.outcome == 'failure'
+        if: failure() && steps.coveragecheck.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-failed-report
           path: ./demo/target/site/jacoco/
-        
       - name: Publish properties file name
         id: publish
-        run: find ./demo/target/classes/*.properties -type f -execdir echo 'script-file={}' >> $GITHUB_OUTPUT ';'
-        
+        run: find ./demo/target/classes/*.properties -type f -execdir echo
+          'script-file={}' >> $GITHUB_OUTPUT ';'
       - name: Archive JAR artifact
         uses: actions/upload-artifact@v4
         with:
           name: springboot-jar
           path: ./demo/target/*.jar
-
   deploy:
     needs: build
     uses: ./.github/workflows/Deploy-Reusable-Workflow.yml
     with:
-     artifact-name: springboot-jar
-     
-   print-deploy-result:
+      artifact-name: springboot-jar
+  print-deploy-result:
     needs: deploy
     runs-on: ubuntu-latest
     steps:
       - name: Print deploy output
         run: echo "${{ needs.deploy.outputs.result }}"
-        
   report:
-    if: failure() #if any job failed then execute this job
+    if: failure()
     runs-on: ubuntu-latest
     steps:
-      
       - name: Output Information
         run: |
-            echo "Something went wrong...."
-            echo "{{ toJSON(github) }}"
-
-
-
-
+          echo "Something went wrong...."
+          echo "{{ toJSON(github) }}"
