@@ -72,14 +72,26 @@
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.13</version>
 				<executions>
+					<!-- Attach the agent -->
 					<execution>
 						<id>prepare-agent</id>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
+
+					<!-- ✅ Generate HTML report first -->
 					<execution>
-						<id>jacoco-check</id>
+						<id>generate-report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+
+					<!-- ✅ Run coverage check AFTER report -->
+					<execution>
+						<id>check-coverage</id>
 						<phase>verify</phase>
 						<goals>
 							<goal>check</goal>
@@ -99,15 +111,9 @@
 							</rules>
 						</configuration>
 					</execution>
-					<execution>
-						<id>report</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
 				</executions>
 			</plugin>
+
 
 		</plugins>
 	</build>
