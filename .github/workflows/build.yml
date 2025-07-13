@@ -86,16 +86,16 @@ jobs:
         with:
           name: jacoco-data
           path: ./demo/target/      
-                    
+          
+      - name: Show working directory and files
+        run: |
+          pwd
+          ls -R
+          
       - name: Build with maven
         id: coveragecheck
         run: mvn verify -DskipTests
         working-directory: demo
-        
-     - name: Show working directory and files
-        run: |
-          pwd
-          ls -R
         
       - name: Upload Test Coverage Report
         if:  failure() && steps.coveragecheck.outcome == 'failure'
