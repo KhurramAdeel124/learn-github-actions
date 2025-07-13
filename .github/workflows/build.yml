@@ -5,10 +5,17 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+  
+env:
+    PROFILE: test
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+        DB_URL: jdbc:mysql://localhost:3306/organization
+        DB_USERNAME: root
+        DB_PASSWORD: admin
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
