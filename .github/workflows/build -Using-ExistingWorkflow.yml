@@ -123,6 +123,8 @@ jobs:
   deploy:
     needs: build
     uses: ./.github/workflows/Deploy-Reusable-Workflow.yml
+    with:
+     artifact-name: springboot-jar
         
   report:
     if: failure() #if any job failed then execute this job
